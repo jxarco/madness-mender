@@ -1,0 +1,7 @@
+[{
+  "title": "Nerdiness",
+  "category":"youth",
+  "eval": "",
+  "transcript":"When he was {age:10..14} his {father|mother|uncle|aunt} gave him a book for this present. The book was 
+  "consequence":"this.knowledge += 1",
+}]
