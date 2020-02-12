@@ -1,5 +1,10 @@
+var MAX_SANITY_CHANGE_TIME = 300;
+
 var stage_message = null;
 var imgs_loaded = 0;
+
+var sanity_change_time = 0;
+var last_sanity_change = false;
 
 var MAINSTAGE = {
 	
@@ -10,7 +15,9 @@ var MAINSTAGE = {
 		{name: "full_sanity", path: "data/sanity_full.png"},
 		{name: "empty_sanity", path: "data/sanity_empty.png"},
 		{name: "desk", path: "data/Desk.png"},
-		{name: "chair", path: "data/Chair.png"}
+		{name: "chair", path: "data/Chair.png"},
+		{name: "sup", path: "data/san-up.png"},
+		{name: "sdown", path: "data/san-down.png"}
 	],
 
 	imgs: {},
@@ -66,8 +73,16 @@ var MAINSTAGE = {
 
 	computeScore: function()
 	{
-		var score = Math.random() * (!Math.floor(Math.random()*2) ? -1 : 1);
-		console.log("score is " + score);
+		var score = 3 * Math.random() * (!Math.floor(Math.random()*2) ? -1 : 1);
+		// console.log("score is " + score);
+
+		if(score > 0)
+			last_sanity_change = true;
+		else 
+			last_sanity_change = false;
+
+		sanity_change_time = MAX_SANITY_CHANGE_TIME;
+
 		return score;
 	},
 
@@ -75,7 +90,7 @@ var MAINSTAGE = {
 		
 		this.state = state || this.state;
 
-		console.log("LOGIC STATE", this.state);		
+		// console.log("LOGIC STATE", this.state);		
 
 		switch(this.state){
 			case "CLIENT":{
@@ -84,7 +99,7 @@ var MAINSTAGE = {
 				this.state = "DOCTOR";
 
 				this.character.generateSalute( this.person )
-				.then(this.person.generateDrama.bind(this.person))
+				.then(this.person.generateDrama.bind( this.person ))
 				.then(this.logic.bind(this));
 				break;
 			}  
@@ -102,17 +117,13 @@ var MAINSTAGE = {
 
 			case "MESSAGE":{
 				this.character.generateMessage( this.person )
-				.then( message => {
-
-					var score = this.computeScore(message);
-
-					this.person.sanity += score;
+				.then( this.person.generateResponse.bind( this.person ) )
+				.then( sanity => {
 
 					if(this.person.sanity < 0)
 						this.logic("BROKEN");
-					else if(this.person.sanity > 1)
+					else if(this.person.sanity > 10)
 						this.logic("REPAIRED");
-
 					// continue logic with same person
 					else
 						this.logic("DOCTOR");
@@ -122,11 +133,13 @@ var MAINSTAGE = {
 
 			case "REPAIRED":	{
 				this.person.sayGoodbye(this.character); // then...
+				break;
 			}
 
 			case "BROKEN":
 			{
 				this.person.sayFuckYou(this.character); // then...
+				break;
 			}
 		}
 	},
@@ -145,6 +158,8 @@ var MAINSTAGE = {
 
 	draw: function(ctx, canvas)
 	{
+		sanity_change_time --;
+
 		if(imgs_loaded != this.scene_files.length)
 		return;
 
@@ -164,18 +179,31 @@ var MAINSTAGE = {
 		var person_sanity = this.person.sanity / 10; // de 0 a 1;
 		var a = 512 * (1-person_sanity);
 
-		this.imgs["full_sanity"]
+		if(this.imgs["full_sanity"])
 			ctx.drawImage( this.imgs["full_sanity"], a , 0, 512, 32, canvas.width - 256 - 15 + a/2, 15, 256, 16);
 		if(this.imgs["empty_sanity"])
 			ctx.drawImage( this.imgs["empty_sanity"], canvas.width - 256 - 15 , 15, 256, 16);
 		
+		// draw arrow
+		if(this.imgs["sup"] && this.imgs["sdown"] && sanity_change_time > 0)
+		{
+			ctx.globalAlpha = sanity_change_time / MAX_SANITY_CHANGE_TIME;
+
+			if(last_sanity_change)
+				ctx.drawImage( this.imgs["sup"],  canvas.width - 256 - 40 , 15, 16, 16);
+			else
+				ctx.drawImage( this.imgs["sdown"], canvas.width - 256 - 40 , 15, 16, 16);
+
+			ctx.globalAlpha = 1;
+			
+		}
+
 		if(this.imgs["chair"])
 			ctx.drawImage( this.imgs["chair"], canvas.width / 2 - 64, canvas.height - 245, 128, 128);
 		this.person.draw(ctx, canvas);
 		if(this.imgs["desk"])
 			ctx.drawImage( this.imgs["desk"], canvas.width / 2 - 256, canvas.height - 170);
 		this.character.draw(ctx, canvas);
-
 
 		// render other text
 		if(!stage_message)

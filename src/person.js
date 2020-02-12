@@ -30,7 +30,7 @@ Person.prototype.generateSalute = async function( character )
 
 		stage_message = {text:salute, type: 2};
 
-		setTimeout(success, 3000/*  + Math.floor(Math.random() * 1000 */);
+		setTimeout(success, 2000/*  + Math.floor(Math.random() * 1000 */);
 	}).bind(this));
 }
 
@@ -55,13 +55,42 @@ Person.prototype.generateDrama = async function(){
 
 		stage_message = {text:drama, type: 2};
 
+		setTimeout(success, 2000/*  + Math.floor(Math.random() * 1000) */);
+
+	}).bind(this));
+}
+
+Person.prototype.generateResponse = async function( message ){
+
+	return new Promise((function(success, reject){
+	
+		var score = MAINSTAGE.computeScore(message);
+		this.sanity += score;
+
+		var phrases = [
+			'Saddest',
+			'Very very sad',
+			'Very sad',
+			'So sad',
+			'Sad',
+			'Little sad',
+			'Not good',
+			'Don\'t mind',
+			'Happy!',
+		];
+	
+		var drama = phrases[Math.floor((this.sanity/10) * phrases.length)];
+		this.log.push(drama);
+
+		stage_message = {text:drama, type: 2};
+
+		var sanity = this.sanity;
+
 		setTimeout(function(){
 
-			success();
+			success( sanity )
 
 		}, 2000/*  + Math.floor(Math.random() * 1000) */);
-
-
 
 	}).bind(this));
 }

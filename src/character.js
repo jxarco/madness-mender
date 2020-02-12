@@ -84,10 +84,16 @@ class Character
         return new Promise((function(success, reject)
         {
             var response = this.Verb.text.replace('_', this.Noun.text); 
-            stage_message = {text:response, type: 1};
+            stage_message = {text: response, type: 1};
             this.log.push(response);
 
-            setTimeout(success, 2000/*  + Math.floor(Math.random() * 1000 */);
+            this.deck.unSelect();
+
+            setTimeout(function(){
+
+                success( response )
+
+            }, 2000/*  + Math.floor(Math.random() * 1000 */);
 
         }).bind(this));
     }

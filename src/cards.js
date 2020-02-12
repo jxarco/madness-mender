@@ -4,7 +4,7 @@ var CARDS_VERB = [
     "There is nothing better than _",
     "Please stop _",
     "I think you should be more _",
-    "The best options is to _"
+    "The best option is to _"
 ];
 
 var CARDS_NOUN = [
@@ -65,8 +65,6 @@ class Card{
             default: throw("unsupported card type");
         }
 
-        console.log(this.deck.character)
-        
 		if(this.deck.character.cardsReady())
 		{
             setTimeout(() => {
@@ -107,6 +105,12 @@ class Deck{
 
         for(var i = 0; i < 3; i++)
         this.cards.push( new Card("n", this) );
+    }
+
+    unSelect()
+    {
+        $(".card-v").removeClass("selected");
+        $(".card-n").removeClass("selected");
     }
 
     show()
